@@ -1,0 +1,25 @@
+{
+  "name": "tests",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "cucumber-js test",
+    "test:headed": "HEADLESS=false cucumber-js",
+    "test:debug": "cross-env HEADLESS=false SLOW_MO=200 DEBUG=true cucumber-js",
+    "test:pw": "PWDEBUG=1 cucumber-js --tags @debug"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@cucumber/cucumber": "^11.0.1",
+    "@cucumber/pretty-formatter": "^1.0.1",
+    "@playwright/test": "^1.48.2",
+    "@types/node": "^22.9.0",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.4.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
+  }
+}
