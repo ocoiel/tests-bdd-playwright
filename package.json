@@ -6,7 +6,7 @@
     "test": "cucumber-js test",
     "test:headed": "HEADLESS=false cucumber-js",
     "test:debug": "cross-env HEADLESS=false SLOW_MO=200 DEBUG=true cucumber-js",
-    "test:pw": "PWDEBUG=1 cucumber-js --tags @debug"
+    "test:pw": "cross-env PWDEBUG=1 DEBUG=pw:api cucumber-js --tags @debug --strict"
   },
   "keywords": [],
   "author": "",

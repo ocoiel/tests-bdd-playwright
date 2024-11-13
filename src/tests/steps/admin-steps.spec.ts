@@ -42,12 +42,9 @@ When("clicar em Editar usuário", async function (this: CustomWorld) {
   await this.adminPage.editarUsuario();
 });
 
-When(
-  "selecionar o perfil Gestão de Contas",
-  async function (this: CustomWorld) {
-    await this.adminPage.gerenciarPerfil("adicionar", "Gestão de Contas");
-  }
-);
+When("selecionar o perfil Gestão de Conta", async function (this: CustomWorld) {
+  await this.adminPage.gerenciarPerfil("adicionar", "Gestão de Conta");
+});
 
 When("adicionar o Acesso", async function () {
   // Já implementado no passo anterior

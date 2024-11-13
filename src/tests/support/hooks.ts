@@ -1,110 +1,65 @@
-import { Before, BeforeAll, After, AfterAll } from "@cucumber/cucumber";
-import { Browser, BrowserContext, Page, chromium } from "@playwright/test";
+// src/support/hooks.ts
+import {
+  Before,
+  BeforeAll,
+  After,
+  AfterAll,
+  setDefaultTimeout,
+} from "@cucumber/cucumber";
 import { CustomWorld } from "./world";
 import { AdminPage } from "../pages/Admin";
+import { browserSetup } from "./BrowserSetup";
 
-let browser: Browser;
-let context: BrowserContext;
-let page: Page;
-let adminPage: AdminPage;
+// Aumenta MUITO o timeout quando em debug
+if (process.env.PWDEBUG === "1") {
+  setDefaultTimeout(300000); // 5 minutos
+} else {
+  setDefaultTimeout(60000); // 1 minuto
+}
 
 BeforeAll(async function () {
-  // Configurações específicas para modo debug
-  const launchOptions = {
-    headless: process.env.HEADLESS !== "false",
-    slowMo: process.env.SLOW_MO ? parseInt(process.env.SLOW_MO) : 0,
-    // Adiciona configurações específicas para debug
-    devtools: process.env.PWDEBUG === "1",
-  };
-
-  // Se estiver em modo debug, ajusta algumas configurações
-  if (process.env.PWDEBUG === "1") {
-    Object.assign(launchOptions, {
-      timeout: 0, // Desativa timeout no modo debug
-      headless: false, // Força modo não-headless em debug
-    });
-  }
-
   try {
-    browser = await chromium.launch(launchOptions);
-
-    context = await browser.newContext({
-      viewport: { width: 1600, height: 900 },
-      // Adiciona configurações para melhor debug
-      recordVideo:
-        process.env.PWDEBUG === "1"
-          ? {
-              dir: "./test-results/videos/",
-            }
-          : undefined,
-    });
-
-    // Configura listeners de erro para debug
-    context.on("page", async (page) => {
-      page.on("pageerror", (exception) => {
-        console.error("Uncaught exception:", exception);
-      });
-      page.on("console", (msg) => {
-        if (msg.type() === "error") {
-          console.error("Console error:", msg.text());
-        }
-      });
-    });
-
-    page = await context.newPage();
-    adminPage = new AdminPage(page);
-
-    // Aumenta timeouts em modo debug
-    if (process.env.PWDEBUG === "1") {
-      await page.setDefaultTimeout(0);
-      await page.setDefaultNavigationTimeout(0);
-    }
-
-    await adminPage.acessarAdmin();
-    await adminPage.login("ifc.bot.boleto@gmail.com", "Teste@123");
-    await context.storageState({ path: "auth.json" });
+    console.log("Iniciando setup global...");
+    await browserSetup.initialize();
+    console.log("Setup global concluído");
   } catch (error) {
-    console.error("Error during setup:", error);
+    console.error("Erro no setup global:", error);
     throw error;
   }
 });
 
 Before(async function (this: CustomWorld) {
-  // Adiciona try-catch para melhor debug
   try {
+    const page = browserSetup.page;
+    if (!page) {
+      throw new Error("Page não foi inicializada corretamente");
+    }
+
     this.page = page;
-    this.adminPage = adminPage;
+    this.adminPage = new AdminPage(page);
+
+    // Se for a primeira execução, faz o login
+    if (!process.env.LOGIN_DONE) {
+      console.log("Realizando login inicial...");
+      await this.adminPage.acessarAdmin();
+      await this.adminPage.login("ifc.bot.boleto@gmail.com", "Teste@123");
+      process.env.LOGIN_DONE = "true";
+      console.log("Login realizado com sucesso");
+    }
   } catch (error) {
-    console.error("Error in Before hook:", error);
+    console.error("Erro no Before hook:", error);
     throw error;
   }
 });
 
-After(async function (this: CustomWorld) {
-  if (this.page) {
-    try {
-      // Limpa cookies e localStorage apenas se não estiver em modo debug
-      if (process.env.PWDEBUG !== "1") {
-        await this.page.evaluate(() => {
-          localStorage.clear();
-          sessionStorage.clear();
-        });
-      }
-    } catch (error) {
-      console.error("Error in After hook:", error);
-    }
-  }
+After(async function () {
+  // Mantenha vazio por enquanto
 });
 
 AfterAll(async function () {
-  try {
-    // Em modo debug, da mais tempo antes de fechar
-    if (process.env.PWDEBUG === "1") {
-      await new Promise((resolve) => setTimeout(resolve, 5000));
-    }
-    await context?.close();
-    await browser?.close();
-  } catch (error) {
-    console.error("Error in AfterAll hook:", error);
+  if (process.env.PWDEBUG === "1") {
+    console.log("Modo debug - aguardando antes de fechar...");
+    await new Promise((resolve) => setTimeout(resolve, 30000));
   }
+  await browserSetup.cleanup();
 });

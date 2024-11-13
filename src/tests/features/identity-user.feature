@@ -12,7 +12,7 @@ Funcionalidade: Jornada Administrativa - Permissão de Acesso
     E buscar pelo Usuário 'Automação Infracommerce'
     E clicar em Detalhes
     E clicar em Editar usuário
-    E selecionar o perfil Gestão de Contas
+    E selecionar o perfil Gestão de Conta
     E adicionar o Acesso
     E salvar as alterações de acesso
     E clicar no menu Contas

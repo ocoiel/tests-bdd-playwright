@@ -112,7 +112,8 @@ export class AdminPage {
     await this.page.fill('input[name="search"]', "");
 
     // Preenche o campo com o texto de busca
-    await this.page.fill('input[name="search"]', usuario);
+    await this.page.locator('input[name="search"]').clear();
+    await this.page.type('input[name="search"]', usuario, { delay: 100 });
 
     // Espera a requisição da busca completar
     await this.page.waitForLoadState("networkidle");
